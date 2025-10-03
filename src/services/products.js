@@ -1,8 +1,38 @@
 import { ProductsCollection } from '../db/models/products.js';
+import { calculatePaginationData } from '../utils/calculatePaginationData.js';
 
-export const getAllProducts = async () => {
-  const products = await ProductsCollection.find();
-  return products;
+export const getAllProducts = async ({
+  category,
+  minPrice,
+  maxPrice,
+  page = 1,
+  perPage = 10,
+}) => {
+  const query = {};
+
+  if (category) {
+    query.category = category;
+  }
+
+  if (minPrice || maxPrice) {
+    query.price = {};
+    if (minPrice) query.price.$gte = Number(minPrice);
+    if (maxPrice) query.price.$lte = Number(maxPrice);
+  }
+
+  const skip = (page - 1) * perPage;
+
+  const productsCount = await ProductsCollection.countDocuments(query);
+
+  const products = await ProductsCollection.find(query)
+    .skip(skip)
+    .limit(Number(perPage));
+
+  const paginationData = calculatePaginationData(productsCount, perPage, page);
+  return {
+    products,
+    ...paginationData,
+  };
 };
 
 export const getProductsById = async (productId) => {

@@ -7,8 +7,17 @@ import {
   updateProduct,
 } from '../services/products.js';
 
-export const getProductsContoller = async (req, res) => {
-  const products = await getAllProducts();
+export const getProductsContoller = async (req, res, next) => {
+  const { category, minPrice, maxPrice, page = 1, perPage = 10 } = req.query;
+
+  const products = await getAllProducts({
+    category,
+    minPrice,
+    maxPrice,
+    page,
+    perPage,
+  });
+
   res.status(200).json({
     status: 200,
     message: 'Successfully found products!',
